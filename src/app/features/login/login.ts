@@ -10,10 +10,11 @@ import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
+import { UserStorage } from '../../core/services/user-storage';
 
 @Component({
   selector: 'app-login',
-    imports: [
+  imports: [
     Grid,
     RouterLink,
     ReactiveFormsModule,
@@ -35,7 +36,7 @@ export class Login implements OnInit {
     private fb: FormBuilder,
     private toast: ToastrService,
     private route: Router,
-    private auth: AuthService
+    private auth: AuthService,
   ) {}
 
   ngOnInit(): void {
@@ -45,21 +46,26 @@ export class Login implements OnInit {
     });
   }
 
-    onSubmit() {
-        this.auth.login(this.loginForm.value).subscribe({
-          next: (res) => {
-            this.toast.success('Login successful!', 'Success', {
-              timeOut: 5000,
-              positionClass: 'toast-top-center',
-            });
-            this.route.navigate(['/dashboard']);
-          },
-          error: (err) => {
-            this.toast.error(err.error.message || 'Login failed. Please try again.', 'Error', {
-              timeOut: 5000,
-              positionClass: 'toast-top-center',
-            });
-          },
+  onSubmit() {
+    this.auth.login(this.loginForm.value).subscribe({
+      next: (res) => {
+        this.toast.success('Login successful!', 'Success', {
+          timeOut: 5000,
+          positionClass: 'toast-top-center',
         });
-    }
+        const user = {
+          id: res.id,
+          role: res.role,
+        };
+        UserStorage.saveUser(user);
+        this.route.navigate(['/layout/home']);
+      },
+      error: (err) => {
+        this.toast.error(err.error.message || 'Login failed. Please try again.', 'Error', {
+          timeOut: 5000,
+          positionClass: 'toast-top-center',
+        });
+      },
+    });
+  }
 }
